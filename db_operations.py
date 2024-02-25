@@ -30,12 +30,27 @@ class dbOperation:
         )
         print("[DEBUG] Data saved successfully", data)
         conn.commit()
-        conn.close()
 
-    def dbGetEntry(self, tableName="passwords"):
+    def dbGetAllEntry(self, tableName="passwords"):
         conn = self.connect()
         cur = conn.cursor()
         entry = cur.execute(f"SELECT * FROM {tableName}")
         print("[DEBUG] Data fetched successfully")
-        conn.close()
         return entry
+
+    def dbUpdateEntry(self, data, tableName="passwords"):
+        conn = self.connect()
+        cur = conn.cursor()
+        cur.execute(
+            f"""UPDATE {tableName} SET website = ?, username = ?, password = ? WHERE id = ?""",
+            (data["website"], data["username"], data["password"], data["ID"]),
+        )
+        print("[DEBUG] Data updated successfully", data)
+        conn.commit()
+
+    def dbDelEntry(self, id, tableName="passwords"):
+        conn = self.connect()
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {tableName} WHERE id = ?", (id,))
+        print("[DEBUG] Data deleted successfully")
+        conn.commit()

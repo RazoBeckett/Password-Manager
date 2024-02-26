@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk, END
+from tkinter import END, ttk
+
 from db_operations import dbOperation
 
 

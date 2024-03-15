@@ -15,7 +15,7 @@ class mainPage:
             justify="center",
         ).grid(columnspan=4, padx=140, pady=10)
         self.root.title(headTitle)
-        self.root.geometry("900x600+40+40")
+        self.root.geometry("1000x600+40+40")
 
         self.curd_frame = tk.Frame(
             self.root,
@@ -150,32 +150,31 @@ class mainPage:
 
     # copy password to clipboard
     def copy2clip(self):
-        self.root.clipboard_clear()
-        self.root.clipboard_append(self.entrybox[3].get())
-        messsage = "Password Copied to Clipboard"
-        title = "Password Copied"
         if self.entrybox[3].get() == "":
-            messsage = "No Password to Copy"
+            message = "No Password to Copy"
             title = "No Password"
-        self.showmessage(title, messsage)
+        else:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(self.entrybox[3].get())
+            message = "Password Copied to Clipboard"
+            title = "Password Copied"
+        self.showmessage(title, message)
 
-    # FIXME: doesn't work as intent
-    def showmessage(self, title_box: str = None, message: str = None):
-        TIMEOUT = 900
-        root = tk.Toplevel(self.root)
+    def showmessage(self, title_box, message):
+        TIMEOUT = 1800
+        popup = tk.Toplevel(self.root)
         background = "green"
         if title_box == "No Password":
             background = "red"
-            root.geometry("200x100+40+40")
-            root.title(title_box)
-            tk.Label(root, text=message, font=("Arial", 12), bg=background).pack(
-                padx=10, pady=10
-            )
-            root.withdraw()
-            try:
-                root.after(TIMEOUT, root.destroy)
-            except Exception as e:
-                print(e)
+        popup.geometry("300x100+40+40")
+        popup.title(title_box)
+        label = tk.Label(popup, text=message, font=("Arial", 12), bg=background)
+        label.pack(padx=10, pady=10)
+
+        def close_popup():
+            popup.destroy()
+
+        popup.after(TIMEOUT, close_popup)
 
 
 if __name__ == "__main__":

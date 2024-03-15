@@ -1,7 +1,9 @@
 import tkinter as tk
-from tkinter import END, ttk
+from tkinter import END, messagebox, ttk
 
 from db_operations import dbOperation
+from PasswordGenerator import \
+    PasswordGenerator  # Assuming you have a separate file for the password generator
 
 
 class mainPage:
@@ -13,8 +15,11 @@ class mainPage:
             text="Python Password Manager",
             font=("Arial", 24),
             justify="center",
-        ).grid(columnspan=4, padx=140, pady=10)
-        self.root.title(headTitle)
+        )
+        headTitle.grid(
+            columnspan=4, padx=140, pady=10
+        )  # Use grid() instead of pack() for better control
+        self.root.title("Python Password Manager")
         self.root.geometry("1000x600+40+40")
 
         self.curd_frame = tk.Frame(
@@ -59,6 +64,11 @@ class mainPage:
             ("Delete", "red", self.delEntry),
             ("Copy Password", "violet", self.copy2clip),
             ("Show All", "black", self.showAllEntry),
+            (
+                "Password Generator",
+                "orange",
+                self.openPasswordGenerator,
+            ),
         )
         for bInfo in Buttonss:
             if bInfo[0] == "Show All":
@@ -153,28 +163,17 @@ class mainPage:
         if self.entrybox[3].get() == "":
             message = "No Password to Copy"
             title = "No Password"
+            messagebox.showinfo(title, message, icon="warning")
         else:
             self.root.clipboard_clear()
             self.root.clipboard_append(self.entrybox[3].get())
             message = "Password Copied to Clipboard"
             title = "Password Copied"
-        self.showmessage(title, message)
+            messagebox.showinfo(title, message, icon="info")
 
-    def showmessage(self, title_box, message):
-        TIMEOUT = 1800
+    def openPasswordGenerator(self):
         popup = tk.Toplevel(self.root)
-        background = "green"
-        if title_box == "No Password":
-            background = "red"
-        popup.geometry("300x100+40+40")
-        popup.title(title_box)
-        label = tk.Label(popup, text=message, font=("Arial", 12), bg=background)
-        label.pack(padx=10, pady=10)
-
-        def close_popup():
-            popup.destroy()
-
-        popup.after(TIMEOUT, close_popup)
+        passwordGenerator = PasswordGenerator(popup)
 
 
 if __name__ == "__main__":

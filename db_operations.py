@@ -2,55 +2,57 @@ import sqlite3
 
 
 class dbOperation:
+    def __init__(self, db_file="passwords.db"):
+        self.db_file = db_file
+        self.conn = self.connect()
+        self.cur = self.conn.cursor()
+        self.create_table()
+
     def connect(self):
-        conn = sqlite3.connect("passwords.db")
-        return conn
+        return sqlite3.connect(self.db_file)
 
-    def createTable(self, tableName="passwords"):
-        conn = self.connect()
-        cur = conn.cursor()
-        cur.execute(
-            f"""CREATE TABLE IF NOT EXISTS {tableName} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            website TEXT NOT NULL, username VARCHAR(200),
-            password VARCHAR(50) NOT NULL)"""
+    def create_table(self):
+        query = """
+            CREATE TABLE IF NOT EXISTS passwords (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                website TEXT NOT NULL,
+                username TEXT NOT NULL,
+                password TEXT NOT NULL
+            )
+        """
+        self.conn.execute(query)
+        self.conn.commit()
+
+    def dbSaveEntry(self, data):
+        query = (
+            f"""INSERT INTO passwords (website, username, password) VALUES (?, ?, ?)"""
         )
-        print("[DEBUG] Table created successfully")
-        conn.commit()
-        conn.close()
+        self.conn.execute(query, (data["website"], data["username"], data["password"]))
+        self.conn.commit()
 
-    def dbSaveEntry(self, data, tableName="passwords"):
-        conn = self.connect()
-        cur = conn.cursor()
-        cur.execute(
-            f"""INSERT INTO {tableName} ('website', 'username', 'password') VALUES (?, ?, ?)""",
-            (data["website"], data["username"], data["password"]),
-        )
-        print("[DEBUG] Data saved successfully", data)
-        conn.commit()
-
-    def dbGetAllEntry(self, tableName="passwords"):
-        conn = self.connect()
-        cur = conn.cursor()
-        entry = cur.execute(f"SELECT * FROM {tableName}")
-        print("[DEBUG] Data fetched successfully")
+    def dbGetAllEntry(self):
+        query = "SELECT * FROM passwords"
+        entry = self.conn.execute(query)
         return entry
 
-    def dbUpdateEntry(self, data, tableName="passwords"):
-        conn = self.connect()
-        cur = conn.cursor()
-        cur.execute(
-            f"""UPDATE {tableName} SET website = ?, username = ?, password = ? WHERE id = ?""",
-            (data["website"], data["username"], data["password"], data["ID"]),
+    def dbUpdateEntry(self, data):
+        query = (
+            "UPDATE passwords SET website = ?, username = ?, password = ? WHERE id = ?"
         )
-        print("[DEBUG] Data updated successfully", data)
-        conn.commit()
+        self.conn.execute(
+            query, (data["website"], data["username"], data["password"], data["ID"])
+        )
+        self.conn.commit()
 
-    def dbDelEntry(self, id, tableName="passwords"):
-        conn = self.connect()
-        cur = conn.cursor()
-        cur.execute(f"DELETE FROM {tableName} WHERE id = ?", (id,))
-        print("[DEBUG] Data deleted successfully")
-        conn.commit()
+    def dbDelEntry(self, id):
+        query = "DELETE FROM passwords WHERE id = ?"
+        self.conn.execute(query, (id,))
+        self.conn.commit()
+
+    def search_entry(self, search_term):
+        query = """
+            SELECT * FROM passwords
+            WHERE website LIKE ? OR username LIKE ?
+        """
+        self.cur.execute(query, (f"%{search_term}%", f"%{search_term}%"))
+        return self.cur.fetchall()

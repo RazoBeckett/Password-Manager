@@ -1,7 +1,8 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
 import random
 import string
+import tkinter as tk
+from tkinter import messagebox, ttk
+
 
 class PasswordGenerator:
     def __init__(self, parent):
@@ -13,7 +14,11 @@ class PasswordGenerator:
         self.length_label.grid(row=0, column=0, padx=10, pady=10, sticky="e")
 
         self.length_slider = ttk.Scale(
-            parent, from_=8, to=64, orient="horizontal", command=self.update_length_label
+            parent,
+            from_=8,
+            to=64,
+            orient="horizontal",
+            command=self.update_length_label,
         )
         self.length_slider.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
 
@@ -45,7 +50,9 @@ class PasswordGenerator:
         self.password_text = tk.Text(parent, height=1, width=30, wrap="none")
         self.password_text.grid(row=4, column=0, padx=10, pady=10, sticky="w")
 
-        self.copy_button = tk.Button(parent, text="Copy", command=self.copy_button_clicked)
+        self.copy_button = tk.Button(
+            parent, text="Copy", command=self.copy_button_clicked
+        )
         self.copy_button.grid(row=4, column=1, padx=10, pady=10, sticky="e")
 
         self.update_length_label(8)  # Set initial length label
@@ -65,7 +72,11 @@ class PasswordGenerator:
         self.length_display_label.config(text=f"Length: {int(float(value))}")
 
     def generate_button_clicked(self):
-        length = int(self.length_slider.get())
+        # if the slider is not being use 8 will be the default value
+        if int(self.length_slider.get()):
+            length = int(self.length_slider.get())
+        else:
+            length = 8
         include_numbers = self.include_numbers_var.get()
         include_symbols = self.include_symbols_var.get()
 
@@ -82,6 +93,7 @@ class PasswordGenerator:
             messagebox.showinfo("Password Generator", "Password copied to clipboard!")
         else:
             messagebox.showwarning("Password Generator", "No password to copy.")
+
 
 # Example usage:
 if __name__ == "__main__":

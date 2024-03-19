@@ -2,11 +2,10 @@ import tkinter as tk
 from tkinter import END, messagebox, ttk
 
 from db_operations import dbOperation
-from PasswordGenerator import \
-    PasswordGenerator  # Assuming you have a separate file for the password generator
+from PasswordGenerator import PasswordGenerator
 
 
-class mainPage:
+class MainPage:
     def __init__(self, root, db):
         self.db = db
         self.root = root
@@ -42,7 +41,7 @@ class mainPage:
             fg="white",
             font=("Arial", 12),
             width=20,
-            # command=self.searchEntry,
+            command=self.search_entry,
         ).grid(row=self.rowno, column=self.colno + 1, padx=10, pady=5)
         self.entrytree()
 
@@ -91,22 +90,28 @@ class mainPage:
         self.rowno, self.colno = 1, 0
         self.entrybox = []
         for i in range(4):
-            ss = ""
+            show = ""
             if i == 3:
-                ss = "*"
+                show = "*"
             entrybox = tk.Entry(
-                self.curd_frame, width=22, font=("Arial", 12), bg="lightgrey", show=ss
+                self.curd_frame,
+                width=22,
+                font=("Arial", 12),
+                bg="Black",
+                show=show,
             )
             entrybox.grid(row=self.rowno, column=self.colno, padx=10, pady=5)
+            if i == 0:
+                entrybox.bind("<Key>", lambda e: "break")
             self.colno += 1
             self.entrybox.append(entrybox)
 
-    # curd functions
     def saveEntry(self):
         website = self.entrybox[1].get()
         username = self.entrybox[2].get()
         password = self.entrybox[3].get()
         data = {"website": website, "username": username, "password": password}
+        print(data)
         self.db.dbSaveEntry(data)
         self.showAllEntry()
 
@@ -128,6 +133,8 @@ class mainPage:
         id = self.entrybox[0].get()
         self.db.dbDelEntry(id)
         self.showAllEntry()
+        for entry_box in self.entrybox:
+            entry_box.delete(0, END)
 
     def showAllEntry(self):
         for item in self.EntryTree.get_children():
@@ -158,7 +165,6 @@ class mainPage:
         self.EntryTree.bind("<<TreeviewSelect>>", item_selected)
         self.EntryTree.grid()
 
-    # copy password to clipboard
     def copy2clip(self):
         if self.entrybox[3].get() == "":
             message = "No Password to Copy"
@@ -172,13 +178,22 @@ class mainPage:
             messagebox.showinfo(title, message, icon="info")
 
     def openPasswordGenerator(self):
-        popup = tk.Toplevel(self.root)
-        passwordGenerator = PasswordGenerator(popup)
+        PasswordGenerator(tk.Toplevel(self.root))
+
+    def search_entry(self):
+        search_term = self.search_Entry.get()
+        if not search_term:
+            messagebox.showwarning("Search Error", "Please enter a search term.")
+            return
+        result = self.db.search_entry(search_term)
+        if result:
+            self.showAllEntry()
+        else:
+            messagebox.showinfo("Search Result", "No matching entry found.")
 
 
 if __name__ == "__main__":
     dbClass = dbOperation()
-    dbClass.createTable()
     root = tk.Tk()
-    mainPage(root, dbClass)
+    MainPage(root, dbClass)
     root.mainloop()

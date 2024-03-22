@@ -142,7 +142,7 @@ class MainPage:
         entryList = self.db.dbGetAllEntry()
         for entry in entryList:
             self.EntryTree.insert(
-                "", END, values=(entry[0], entry[3], entry[4], entry[5])
+                "", END, values=(entry[0], entry[1], entry[2], entry[3])
             )
 
     def entrytree(self):

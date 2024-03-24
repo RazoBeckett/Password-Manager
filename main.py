@@ -70,7 +70,7 @@ def check_password(master_password):
 
         if bcrypt.checkpw(master_password.encode(), stored_hashed_password):
             try:
-                MainPage()
+                MainPage(master_password)
             except Exception:
                 messagebox.showerror(
                     "Error",
@@ -87,6 +87,8 @@ def check_password(master_password):
 # Create the main Tkinter window
 root = tk.Tk()
 root.title("Password Manager")
+root.geometry("400x200")
+root.resizable(0, 0)
 
 # Check if the database exists
 check_database()

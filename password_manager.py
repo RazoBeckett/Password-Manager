@@ -6,8 +6,8 @@ from PasswordGenerator import PasswordGenerator
 
 
 class MainPage:
-    def __init__(self):
-        self.db = dbOperation()
+    def __init__(self, master_password):
+        self.db = dbOperation(master_password)
         self.root = tk.Tk()
         headTitle = tk.Label(
             self.root,

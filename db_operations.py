@@ -1,17 +1,35 @@
 import sqlite3
-import bcrypt
 
-def hash_password(password):
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(password.encode(), salt)
-    return hashed
+import bcrypt
+from cryptography.fernet import Fernet
+
+
+def generate_key(password):
+    key = bcrypt.kdf(
+        password=password.encode(), salt=b"salt", desired_key_bytes=32, rounds=100
+    )
+    return key
+
+
+def encrypt_password(password):
+    key = Fernet.generate_key()
+    cipher_suite = Fernet(key)
+    ciphered_text = cipher_suite.encrypt(password.encode())
+    return ciphered_text
+
+
+def decrypt_password(self, encrypted_password):
+    decrypted_password = self.fernet.decrypt(encrypted_password).decode()
+    return decrypted_password
+
 
 class dbOperation:
-    def __init__(self, db_file="passwords.db"):
-        self.db_file = db_file
+    def __init__(self, masterpassword):
+        self.db_file = "passwords.db"
         self.conn = self.connect()
         self.cur = self.conn.cursor()
         self.create_table()
+        generate_key(masterpassword)
 
     def connect(self):
         return sqlite3.connect(self.db_file)
@@ -29,11 +47,11 @@ class dbOperation:
         self.conn.commit()
 
     def dbSaveEntry(self, data):
-        query = (
-            f"""INSERT INTO user_accounts (website, username, password) VALUES (?, ?, ?)"""
-        )
-        encryptedpass = hash_password(data["password"])
+        query = f"""INSERT INTO user_accounts (website, username, password) VALUES (?, ?, ?)"""
+        encryptedpass = encrypt_password(data["password"])
         self.conn.execute(query, (data["website"], data["username"], encryptedpass))
+        self.conn.commit()
+
         self.conn.commit()
 
     def dbGetAllEntry(self):
@@ -42,12 +60,10 @@ class dbOperation:
         return entry
 
     def dbUpdateEntry(self, data):
-        query = (
-            "UPDATE user_accounts SET website = ?, username = ?, password = ? WHERE id = ?"
-        )
-        encryptedpass = hash_password(data["password"])
+        query = "UPDATE user_accounts SET website = ?, username = ?, password = ? WHERE id = ?"
+        encryptedpass = encrypt_password(data["password"])
         self.conn.execute(
-            query, (data["website"], data["username"], encryptedpass , data["ID"])
+            query, (data["website"], data["username"], encryptedpass, data["ID"])
         )
         self.conn.commit()
 
@@ -59,7 +75,6 @@ class dbOperation:
     def search_entry(self, search_term):
         query = """
             SELECT * FROM user_accounts
-            WHERE website LIKE ? OR username LIKE ?
-        """
-        self.cur.execute(query, (f"%{search_term}%", f"%{search_term}%"))
+            WHERE website LIKE ? """
+        self.cur.execute(query, (f"%{search_term}%",))
         return self.cur.fetchall()

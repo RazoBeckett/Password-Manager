@@ -20,6 +20,7 @@ class MainPage:
         )  # Use grid() instead of pack() for better control
         self.root.title("Python Password Manager")
         self.root.geometry("1000x600+40+40")
+        self.root.resizable(False, False)
 
         self.curd_frame = tk.Frame(
             self.root,

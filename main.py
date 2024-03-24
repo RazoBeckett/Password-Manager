@@ -88,7 +88,7 @@ def check_password(master_password):
 root = tk.Tk()
 root.title("Password Manager")
 root.geometry("400x200")
-root.resizable(0, 0)
+root.resizable(False, False)
 
 # Check if the database exists
 check_database()

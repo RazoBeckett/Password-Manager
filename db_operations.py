@@ -1,7 +1,22 @@
+import os
 import sqlite3
 
 import bcrypt
-from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+
+def pad(data):
+    padder = padding.PKCS7(128).padder()
+    padded_data = padder.update(data) + padder.finalize()
+    return padded_data
+
+
+def unpad(data):
+    unpadder = padding.PKCS7(128).unpadder()
+    unpadded_data = unpadder.update(data) + unpadder.finalize()
+    return unpadded_data
 
 
 def generate_key(password):
@@ -11,16 +26,23 @@ def generate_key(password):
     return key
 
 
-def encrypt_password(password):
-    key = Fernet.generate_key()
-    cipher_suite = Fernet(key)
-    ciphered_text = cipher_suite.encrypt(password.encode())
-    return ciphered_text
+def encrypt_password(password, key):
+    backend = default_backend()
+    iv = os.urandom(16)  # Generate a random initialization vector
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+    encryptor = cipher.encryptor()
+    ciphertext = encryptor.update(pad(password.encode())) + encryptor.finalize()
+    return iv + ciphertext
 
 
-def decrypt_password(self, encrypted_password):
-    decrypted_password = self.fernet.decrypt(encrypted_password).decode()
-    return decrypted_password
+def decrypt_password(encrypted_password, key):
+    backend = default_backend()
+    iv = encrypted_password[:16]
+    ciphertext = encrypted_password[16:]
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+    decryptor = cipher.decryptor()
+    plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+    return unpad(plaintext)
 
 
 class dbOperation:
@@ -29,7 +51,7 @@ class dbOperation:
         self.conn = self.connect()
         self.cur = self.conn.cursor()
         self.create_table()
-        generate_key(masterpassword)
+        self.key = generate_key(masterpassword)
 
     def connect(self):
         return sqlite3.connect(self.db_file)
@@ -40,28 +62,32 @@ class dbOperation:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 website TEXT NOT NULL,
                 username TEXT NOT NULL,
-                password TEXT NOT NULL
+                password BLOB NOT NULL
             )
         """
         self.conn.execute(query)
         self.conn.commit()
 
     def dbSaveEntry(self, data):
-        query = f"""INSERT INTO user_accounts (website, username, password) VALUES (?, ?, ?)"""
-        encryptedpass = encrypt_password(data["password"])
+        query = """INSERT INTO user_accounts (website, username, password) VALUES (?, ?, ?)"""
+        encryptedpass = encrypt_password(data["password"], self.key)
         self.conn.execute(query, (data["website"], data["username"], encryptedpass))
-        self.conn.commit()
-
         self.conn.commit()
 
     def dbGetAllEntry(self):
         query = "SELECT * FROM user_accounts"
-        entry = self.conn.execute(query)
-        return entry
+        entries = self.conn.execute(query).fetchall()
+        decrypted_entries = []
+        for entry in entries:
+            decrypted_entry = list(entry)
+            encrypted_password = entry[3]
+            decrypted_entry[3] = decrypt_password(encrypted_password, self.key).decode()
+            decrypted_entries.append(tuple(decrypted_entry))
+        return decrypted_entries
 
     def dbUpdateEntry(self, data):
         query = "UPDATE user_accounts SET website = ?, username = ?, password = ? WHERE id = ?"
-        encryptedpass = encrypt_password(data["password"])
+        encryptedpass = encrypt_password(data["password"], self.key)
         self.conn.execute(
             query, (data["website"], data["username"], encryptedpass, data["ID"])
         )

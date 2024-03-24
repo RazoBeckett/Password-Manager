@@ -1,4 +1,5 @@
 import os
+import re
 import sqlite3
 import tkinter as tk
 from tkinter import messagebox
@@ -38,6 +39,22 @@ def set_master_password():
     confirm_password = confirm_password_entry.get()
     if master_password and confirm_password:
         if master_password == confirm_password:
+            is_strong = lambda x: all(
+                [
+                    len(x) >= 8,
+                    re.search(r"[a-z]", x),
+                    re.search(r"[A-Z]", x),
+                    re.search(r"[0-9]", x),
+                    re.search(r"[!@#$%^&*()_+]", x),
+                ]
+            )
+            if not is_strong(master_password):
+                messagebox.showerror(
+                    "Error",
+                    "Password should contain at least 8 characters, one digit, one upper case, one lower case and one special character.",
+                )
+                return
+
             create_database()  # Ensure the database and table are created
             hashed_password = hash_password(master_password)
             conn = sqlite3.connect("passwords.db")
@@ -121,6 +138,7 @@ def set_password():
     confirm_password_entry = tk.Entry(login_window, show="*")
     confirm_password_entry.pack()
 
+    os.remove("passwords.db")
     set_password_button = tk.Button(
         login_window, text="Set Password", command=set_master_password
     )

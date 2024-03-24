@@ -1,4 +1,5 @@
 __pycache__/
+*.bak
 *.db
 *.py[cod]
 *$py.class

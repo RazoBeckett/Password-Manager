@@ -44,7 +44,7 @@ class MainPage:
             command=self.search_entry,
         ).grid(row=self.rowno, column=self.colno + 1, padx=10, pady=5)
         self.entrytree()
-        root.mainloop()
+        self.root.mainloop()
 
     def EntryLabels(self):
         self.colno, self.rowno = 0, 0

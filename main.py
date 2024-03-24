@@ -2,9 +2,10 @@ import os
 import sqlite3
 import tkinter as tk
 from tkinter import messagebox
-from password_manager import MainPage
 
 import bcrypt
+
+from password_manager import MainPage
 
 
 # Function to hash the master password
@@ -63,27 +64,24 @@ def set_master_password():
 def check_password(master_password):
     conn = sqlite3.connect("passwords.db")
     c = conn.cursor()
-    c.execute("SELECT hashed_password FROM master_password")
-    stored_hashed_password = c.fetchone()[0]
-    conn.close()
+    try:
+        c.execute("SELECT hashed_password FROM master_password")
+        stored_hashed_password = c.fetchone()[0]
 
-    if bcrypt.checkpw(master_password.encode(), stored_hashed_password):
-        messagebox.showinfo(
-            "Success", "Password verified. You can now access the password manager."
-        )
-        try:
-            MainPage()
-            root.destroy()
-        except Exception as e:
-            messagebox.showerror(
-                "Error",
-                "Failed to open password manager., Please check if main.py is in the same directory.",
-                e
-            )
-        # Code to open the password manager GUI
-        # Replace this with your actual code to open the password manager
-    else:
-        messagebox.showerror("Error", "Incorrect password. Access denied.")
+        if bcrypt.checkpw(master_password.encode(), stored_hashed_password):
+            try:
+                MainPage()
+            except Exception:
+                messagebox.showerror(
+                    "Error",
+                    "Failed to open password manager, please check if password_manager.py is in the same directory.",
+                )
+        else:
+            messagebox.showerror("Error", "Incorrect password. Access denied.")
+    except:
+        messagebox.showerror("Error", "Master password is not set.")
+    finally:
+        conn.close()
 
 
 # Create the main Tkinter window
@@ -140,3 +138,4 @@ set_password_button.pack()
 
 # Run the Tkinter event loop
 root.mainloop()
+root.quit()

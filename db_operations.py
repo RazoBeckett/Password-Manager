@@ -18,7 +18,7 @@ class dbOperation:
 
     def create_table(self):
         query = """
-            CREATE TABLE IF NOT EXISTS passwords (
+            CREATE TABLE IF NOT EXISTS user_accounts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 website TEXT NOT NULL,
                 username TEXT NOT NULL,
@@ -30,20 +30,20 @@ class dbOperation:
 
     def dbSaveEntry(self, data):
         query = (
-            f"""INSERT INTO passwords (website, username, password) VALUES (?, ?, ?)"""
+            f"""INSERT INTO user_accounts (website, username, password) VALUES (?, ?, ?)"""
         )
         encryptedpass = hash_password(data["password"])
         self.conn.execute(query, (data["website"], data["username"], encryptedpass))
         self.conn.commit()
 
     def dbGetAllEntry(self):
-        query = "SELECT * FROM passwords"
+        query = "SELECT * FROM user_accounts"
         entry = self.conn.execute(query)
         return entry
 
     def dbUpdateEntry(self, data):
         query = (
-            "UPDATE passwords SET website = ?, username = ?, password = ? WHERE id = ?"
+            "UPDATE user_accounts SET website = ?, username = ?, password = ? WHERE id = ?"
         )
         encryptedpass = hash_password(data["password"])
         self.conn.execute(
@@ -52,13 +52,13 @@ class dbOperation:
         self.conn.commit()
 
     def dbDelEntry(self, id):
-        query = "DELETE FROM passwords WHERE id = ?"
+        query = "DELETE FROM user_accounts WHERE id = ?"
         self.conn.execute(query, (id,))
         self.conn.commit()
 
     def search_entry(self, search_term):
         query = """
-            SELECT * FROM passwords
+            SELECT * FROM user_accounts
             WHERE website LIKE ? OR username LIKE ?
         """
         self.cur.execute(query, (f"%{search_term}%", f"%{search_term}%"))

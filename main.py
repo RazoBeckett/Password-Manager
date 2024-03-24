@@ -64,7 +64,7 @@ class MainPage:
             ("Copy Password", "violet", self.copy2clip),
             ("Show All", "black", self.showAllEntry),
             (
-                "Password Generator",
+                "Generate Pass",
                 "orange",
                 self.openPasswordGenerator,
             ),
@@ -97,7 +97,6 @@ class MainPage:
                 self.curd_frame,
                 width=22,
                 font=("Arial", 12),
-                bg="Black",
                 show=show,
             )
             entrybox.grid(row=self.rowno, column=self.colno, padx=10, pady=5)

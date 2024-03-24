@@ -1,5 +1,10 @@
 import sqlite3
+import bcrypt
 
+def hash_password(password):
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode(), salt)
+    return hashed
 
 class dbOperation:
     def __init__(self, db_file="passwords.db"):
@@ -27,7 +32,8 @@ class dbOperation:
         query = (
             f"""INSERT INTO passwords (website, username, password) VALUES (?, ?, ?)"""
         )
-        self.conn.execute(query, (data["website"], data["username"], data["password"]))
+        encryptedpass = hash_password(data["password"])
+        self.conn.execute(query, (data["website"], data["username"], encryptedpass))
         self.conn.commit()
 
     def dbGetAllEntry(self):
@@ -39,8 +45,9 @@ class dbOperation:
         query = (
             "UPDATE passwords SET website = ?, username = ?, password = ? WHERE id = ?"
         )
+        encryptedpass = hash_password(data["password"])
         self.conn.execute(
-            query, (data["website"], data["username"], data["password"], data["ID"])
+            query, (data["website"], data["username"], encryptedpass , data["ID"])
         )
         self.conn.commit()
 

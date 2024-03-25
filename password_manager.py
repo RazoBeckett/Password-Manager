@@ -191,10 +191,3 @@ class MainPage:
             self.showAllEntry()
         else:
             messagebox.showinfo("Search Result", "No matching entry found.")
-
-
-if __name__ == "__main__":
-    dbClass = dbOperation()
-    root = tk.Tk()
-    MainPage(root, dbClass)
-    root.mainloop()

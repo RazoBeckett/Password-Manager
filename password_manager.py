@@ -149,11 +149,11 @@ class MainPage:
     def showAllEntry(self):
         for item in self.EntryTree.get_children():
             self.EntryTree.delete(item)
-        entryList = self.db.dbGetAllEntry()
-        for entry in entryList:
-            self.EntryTree.insert(
-                "", END, values=(entry[0], entry[1], entry[2], entry[3])
-            )
+        self.plain_pass = []
+        for entry in self.db.dbGetAllEntry():
+            self.plain_pass.append(entry[3])
+            entry_with_asterisk = entry[:3] + ("*" * len(entry[3]),)
+            self.EntryTree.insert("", END, values=entry_with_asterisk)
 
     def entrytree(self):
         col = ("ID", "Website", "Username", "Password")
@@ -171,6 +171,9 @@ class MainPage:
                 for entry_box, item in zip(self.entrybox, entry):
                     entry_box.delete(0, END)
                     entry_box.insert(0, item)
+                    if entry_box == self.entrybox[3]:
+                        entry_box.delete(0, END)
+                        entry_box.insert(0, self.plain_pass[int(entry[0]) - 1])
 
         self.EntryTree.bind("<<TreeviewSelect>>", item_selected)
         self.EntryTree.grid()
@@ -194,12 +197,15 @@ class MainPage:
         search_term = self.search_Entry.get()
         if not search_term:
             messagebox.showwarning("Search Error", "Please enter a search term.")
-            return
-
-        entry_id = self.db.search_entry(search_term)
-        if entry_id:
-            self.EntryTree.selection_set(entry_id)
-            self.EntryTree.focus(entry_id)
-            self.EntryTree.see(entry_id)
         else:
-            messagebox.showinfo("Search Result", "No results found.")
+            entry_id = self.db.search_entry(search_term)
+            print(entry_id)
+            if not entry_id:
+                messagebox.showinfo("Search Result", "No results found.")
+            else:
+                item_id = self.EntryTree.identify_column(entry_id[0])
+                print(item_id)
+                if item_id:
+                    self.EntryTree.selection_set(item_id)
+                    self.EntryTree.focus(item_id)
+                    self.EntryTree.see(item_id)

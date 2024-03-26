@@ -111,27 +111,33 @@ class MainPage:
         website = self.entrybox[1].get()
         username = self.entrybox[2].get()
         password = self.entrybox[3].get()
-        data = {"website": website, "username": username, "password": password}
-        if self.db.entryExists(website, username):
-            messagebox.showerror("Error", "Entry already exists.")
-            return
+        if not website or not username or not password:
+            messagebox.showerror("Error", "Please fill all the fields.")
         else:
-            self.db.dbSaveEntry(data)
-            self.showAllEntry()
+            data = {"website": website, "username": username, "password": password}
+            if self.db.entryExists(website, username):
+                messagebox.showerror("Error", "Entry already exists.")
+                return
+            else:
+                self.db.dbSaveEntry(data)
+                self.showAllEntry()
 
     def updateEntry(self):
         id = self.entrybox[0].get()
         website = self.entrybox[1].get()
         username = self.entrybox[2].get()
         password = self.entrybox[3].get()
-        data = {
-            "ID": id,
-            "website": website,
-            "username": username,
-            "password": password,
-        }
-        self.db.dbUpdateEntry(data)
-        self.showAllEntry()
+        if not website or not username or not password:
+            messagebox.showerror("Error", "Please fill all the fields.")
+        else:
+            data = {
+                "ID": id,
+                "website": website,
+                "username": username,
+                "password": password,
+            }
+            self.db.dbUpdateEntry(data)
+            self.showAllEntry()
 
     def delEntry(self):
         id = self.entrybox[0].get()
@@ -189,8 +195,11 @@ class MainPage:
         if not search_term:
             messagebox.showwarning("Search Error", "Please enter a search term.")
             return
-        result = self.db.search_entry(search_term)
-        if result:
-            self.showAllEntry()
+
+        entry_id = self.db.search_entry(search_term)
+        if entry_id:
+            self.EntryTree.selection_set(entry_id)
+            self.EntryTree.focus(entry_id)
+            self.EntryTree.see(entry_id)
         else:
-            messagebox.showinfo("Search Result", "No matching entry found.")
+            messagebox.showinfo("Search Result", "No results found.")

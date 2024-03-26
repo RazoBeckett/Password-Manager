@@ -69,9 +69,17 @@ class dbOperation:
         self.conn.commit()
 
     def dbSaveEntry(self, data):
-        query = """INSERT INTO user_accounts (website, username, password) VALUES (?, ?, ?)"""
+        # Get the maximum ID in the database
+        max_id_query = "SELECT MAX(id) FROM user_accounts"
+        max_id_result = self.conn.execute(max_id_query).fetchone()
+        max_id = max_id_result[0] if max_id_result[0] is not None else 0
+
+        # Insert the new entry with an ID one greater than the maximum ID
+        query = """INSERT INTO user_accounts (id, website, username, password) VALUES (?, ?, ?, ?)"""
         encryptedpass = encrypt_password(data["password"], self.key)
-        self.conn.execute(query, (data["website"], data["username"], encryptedpass))
+        self.conn.execute(
+            query, (max_id + 1, data["website"], data["username"], encryptedpass)
+        )
         self.conn.commit()
 
     def dbGetAllEntry(self):
@@ -94,17 +102,26 @@ class dbOperation:
         self.conn.commit()
 
     def dbDelEntry(self, id):
-        query = "DELETE FROM user_accounts WHERE id = ?"
-        self.conn.execute(query, (id,))
+        # Delete the entry with the given ID
+        query_delete = "DELETE FROM user_accounts WHERE id = ?"
+        self.conn.execute(query_delete, (id,))
+
+        # After deleting, update the IDs to be sequential
+        query_update = "UPDATE user_accounts SET id = id - 1 WHERE id > ?"
+        self.conn.execute(query_update, (id,))
+
+        # Commit both operations
         self.conn.commit()
 
     def search_entry(self, search_term):
-        query = """
-            SELECT * FROM user_accounts
-            WHERE website LIKE ? """
+        query = """SELECT ID, website FROM user_accounts WHERE website LIKE ?"""
         self.cur.execute(query, (f"%{search_term}%",))
-        return self.cur.fetchall()
-    
+        result = self.cur.fetchall()
+        if result:
+            return result[0]
+        else:
+            return None
+
     def entryExists(self, website, username):
         query = "SELECT * FROM user_accounts WHERE website = ? AND username = ?"
         self.cur.execute(query, (website, username))

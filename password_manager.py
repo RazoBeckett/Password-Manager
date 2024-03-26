@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import END, messagebox, ttk
 
-from db_operations import dbOperation, decrypt_password
+from db_operations import dbOperation
 from PasswordGenerator import PasswordGenerator
 
 

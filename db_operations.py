@@ -93,6 +93,16 @@ class dbOperation:
             decrypted_entries.append(tuple(decrypted_entry))
         return decrypted_entries
 
+    def get_password_by_id(self, entry_id):
+        query = "SELECT password FROM user_accounts WHERE id = ?"
+        result = self.conn.execute(query, (entry_id,)).fetchone()
+        if result:
+            encrypted_password = result[0]
+            decrypted_password = decrypt_password(encrypted_password, self.key).decode()
+            return decrypted_password
+        else:
+            return None
+
     def dbUpdateEntry(self, data):
         query = "UPDATE user_accounts SET website = ?, username = ?, password = ? WHERE id = ?"
         encryptedpass = encrypt_password(data["password"], self.key)

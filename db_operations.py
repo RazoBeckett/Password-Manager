@@ -104,3 +104,9 @@ class dbOperation:
             WHERE website LIKE ? """
         self.cur.execute(query, (f"%{search_term}%",))
         return self.cur.fetchall()
+    
+    def entryExists(self, website, username):
+        query = "SELECT * FROM user_accounts WHERE website = ? AND username = ?"
+        self.cur.execute(query, (website, username))
+        result = self.cur.fetchall()
+        return len(result) > 0

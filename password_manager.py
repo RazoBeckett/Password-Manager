@@ -112,9 +112,12 @@ class MainPage:
         username = self.entrybox[2].get()
         password = self.entrybox[3].get()
         data = {"website": website, "username": username, "password": password}
-        print(data)
-        self.db.dbSaveEntry(data)
-        self.showAllEntry()
+        if self.db.entryExists(website, username):
+            messagebox.showerror("Error", "Entry already exists.")
+            return
+        else:
+            self.db.dbSaveEntry(data)
+            self.showAllEntry()
 
     def updateEntry(self):
         id = self.entrybox[0].get()

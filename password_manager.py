@@ -179,7 +179,7 @@ class MainPage:
             messagebox.showinfo(title, message, icon="info")
 
     def openPasswordGenerator(self):
-        PasswordGenerator(tk.Toplevel(self.root))
+        PasswordGenerator(tk.Toplevel())
 
     def search_entry(self):
         search_term = self.search_Entry.get()

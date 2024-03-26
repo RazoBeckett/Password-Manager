@@ -15,7 +15,7 @@ class PasswordGenerator:
 
         self.length_slider = ttk.Scale(
             parent,
-            from_=8,
+            from_=16,
             to=64,
             orient="horizontal",
             command=self.update_length_label,
@@ -55,7 +55,7 @@ class PasswordGenerator:
         )
         self.copy_button.grid(row=4, column=1, padx=10, pady=10, sticky="e")
 
-        self.update_length_label(8)  # Set initial length label
+        self.update_length_label(16)  # Set initial length label
         self.include_numbers_var.set(True)  # Include numbers by default
 
     def generate_password(self, length, include_numbers, include_symbols):
@@ -72,11 +72,9 @@ class PasswordGenerator:
         self.length_display_label.config(text=f"Length: {int(float(value))}")
 
     def generate_button_clicked(self):
-        # if the slider is not being use 8 will be the default value
-        if int(self.length_slider.get()):
-            length = int(self.length_slider.get())
-        else:
-            length = 8
+        length = int(self.length_slider.get())
+        if not length:
+            length = 16  # Default length
         include_numbers = self.include_numbers_var.get()
         include_symbols = self.include_symbols_var.get()
 
@@ -89,14 +87,7 @@ class PasswordGenerator:
         if password:
             self.parent.clipboard_clear()
             self.parent.clipboard_append(password)
-            self.parent.update()  # required for clipboard to be updated
+            self.parent.update()
             messagebox.showinfo("Password Generator", "Password copied to clipboard!")
         else:
             messagebox.showwarning("Password Generator", "No password to copy.")
-
-
-# Example usage:
-if __name__ == "__main__":
-    root = tk.Tk()
-    password_generator = PasswordGenerator(root)
-    root.mainloop()

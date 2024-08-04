@@ -39,15 +39,18 @@ def set_master_password():
     confirm_password = confirm_password_entry.get()
     if master_password and confirm_password:
         if master_password == confirm_password:
-            is_strong = lambda x: all(
-                [
-                    len(x) >= 8,
-                    re.search(r"[a-z]", x),
-                    re.search(r"[A-Z]", x),
-                    re.search(r"[0-9]", x),
-                    re.search(r"[!@#$%^&*()_+]", x),
-                ]
-            )
+
+            def is_strong(x):
+                return all(
+                    [
+                        len(x) >= 8,
+                        re.search(r"[a-z]", x),
+                        re.search(r"[A-Z]", x),
+                        re.search(r"[0-9]", x),
+                        re.search(r"[!@#$%^&*()_+]", x),
+                    ]
+                )
+
             if not is_strong(master_password):
                 messagebox.showerror(
                     "Error",

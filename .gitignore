@@ -90,3 +90,6 @@ PIPENV_VERBOSITY=-1
 # pipx
 # Default location of pipx installations
 ~/.local/bin
+
+# ignore virtualenv 
+.venv/

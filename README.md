@@ -16,11 +16,11 @@ python3 main.py
 
 |Main Screen|Copy Password Pop-up|
 |---|---|
-|![Main-Pane](assets/main-pane.png)|![Password-Copied-pop-up](assets/password-copied-pop-up.png)|
+|![Main-Pane](assets/main-pane.webp)|![Password-Copied-pop-up](assets/password-copied-pop-up.webp)|
 |Master Login Screen|Master Password Setup|
-|![master-login-screen](assets/master-login-screen.png)| ![master-password-login](assets/master-password-login.png)|
+|![master-login-screen](assets/master-login-screen.webp)| ![master-password-login](assets/master-password-login.webp)|
 |Password Generator|
-|![Password-Generator](assets/pass-gen.png)|
+|![Password-Generator](assets/pass-gen.webp)|
 
 > [!NOTE]
 > The password manager is built using Python with Tkinter. Since Tkinter supports Qt, the appearance of the application may vary depending on your desktop environment. The screenshots reflect the color scheme I have set for my system.

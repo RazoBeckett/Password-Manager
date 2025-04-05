@@ -15,30 +15,39 @@ class MainPage:
     def __init__(self, master_password):
         self.db = dbOperation(master_password)
         self.root = tk.Tk()
-        headTitle = tk.Label(
-            self.root,
-            text="Python Password Manager",
-            font=("Arial", 24),
-            justify="center",
-        )
-        headTitle.grid(
-            columnspan=4, padx=140, pady=10
-        )  # Use grid() instead of pack() for better control
         self.root.title("Python Password Manager")
         self.root.geometry("1000x600+40+40")
         self.root.resizable(False, False)
 
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.pack(fill="both", expand=True)
+
+        self.home_tab = ttk.Frame(self.notebook)
+        self.analytics_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.home_tab, text="Home")
+        self.notebook.add(self.analytics_tab, text="Analytics")
+
+        headTitle = tk.Label(
+            self.home_tab,
+            text="Python Password Manager",
+            font=("Arial", 24),
+            justify="center",
+        )
+        headTitle.grid(columnspan=4, padx=140, pady=10)
+
         self.curd_frame = tk.Frame(
-            self.root,
+            self.home_tab,
             highlightbackground="black",
             highlightthickness=1,
             padx=10,
             pady=10,
         )
         self.curd_frame.grid()
+
         self.EntryLabels()
         self.EntryFields()
         self.Buttons()
+
         self.search_Entry = tk.Entry(self.curd_frame, width=30, font=("Arial", 12))
         self.search_Entry.grid(row=self.rowno, column=self.colno)
         tk.Button(
@@ -50,7 +59,15 @@ class MainPage:
             width=20,
             command=self.search_entry,
         ).grid(row=self.rowno, column=self.colno + 1, padx=10, pady=5)
+
         self.entrytree()
+
+        tk.Label(
+            self.analytics_tab,
+            text="Analytics Dashboard Coming Soon!",
+            font=("Arial", 18),
+        ).pack(pady=100)
+
         self.root.mainloop()
 
     def EntryLabels(self):
@@ -182,7 +199,7 @@ class MainPage:
                         entry_box.insert(0, self.plain_pass[int(entry[0]) - 1])
 
         self.EntryTree.bind("<<TreeviewSelect>>", item_selected)
-        self.EntryTree.grid()
+        self.EntryTree.pack()
 
     def copy2clip(self):
         if self.entrybox[3].get() == "":

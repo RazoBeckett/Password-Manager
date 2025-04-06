@@ -180,7 +180,7 @@ class MainPage:
 
     def entrytree(self):
         col = ("ID", "Website", "Username", "Password")
-        self.EntryTree = ttk.Treeview(self.root, columns=col, show="headings")
+        self.EntryTree = ttk.Treeview(self.home_tab, columns=col, show="headings")
         self.EntryTree.heading("ID", text="ID")
         self.EntryTree.heading("Website", text="Website Name")
         self.EntryTree.heading("Username", text="Username")
@@ -199,7 +199,7 @@ class MainPage:
                         entry_box.insert(0, self.plain_pass[int(entry[0]) - 1])
 
         self.EntryTree.bind("<<TreeviewSelect>>", item_selected)
-        self.EntryTree.pack()
+        self.EntryTree.grid()
 
     def copy2clip(self):
         if self.entrybox[3].get() == "":

@@ -7,6 +7,8 @@
 import tkinter as tk
 from tkinter import END, messagebox, ttk
 
+from rapidfuzz import fuzz
+
 from db_operations import dbOperation
 from PasswordGenerator import PasswordGenerator
 
@@ -222,22 +224,20 @@ class MainPage:
             messagebox.showwarning("Search Error", "Please enter a search term.")
             return
 
-        result = self.db.search_entry(search_term)
-        print("DB Result:", result)
+        best_match = None
+        highest_score = 0
 
-        if not result:
-            messagebox.showinfo("Search Result", "No results found.")
-            return
-
-        entry_id = result[0]
         for item in self.EntryTree.get_children():
             values = self.EntryTree.item(item, "values")
-            print("Checking item: ", item, "with values ", values)
+            for val in values:
+                score = fuzz.partial_ratio(search_term.lower(), str(val).lower())
+                if score > highest_score:
+                    highest_score = score
+                    best_match = item
 
-            if str(values[0]) == str(entry_id):
-                self.EntryTree.selection_set(item)
-                self.EntryTree.focus(item)
-                self.EntryTree.see(item)
-                return
-
-        messagebox.showinfo("Search Result", "Found in DB but not in the view.")
+        if best_match and highest_score >= 70:
+            self.EntryTree.selection_set(best_match)
+            self.EntryTree.focus(best_match)
+            self.EntryTree.see(best_match)
+        else:
+            messagebox.showinfo("Search Result", "Found in DB but not in the view.")

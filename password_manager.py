@@ -220,15 +220,24 @@ class MainPage:
         search_term = self.search_Entry.get()
         if not search_term:
             messagebox.showwarning("Search Error", "Please enter a search term.")
-        else:
-            entry_id = self.db.search_entry(search_term)
-            print(entry_id)
-            if not entry_id:
-                messagebox.showinfo("Search Result", "No results found.")
-            else:
-                item_id = self.EntryTree.identify_column(entry_id[0])
-                print(item_id)
-                if item_id:
-                    self.EntryTree.selection_set(item_id)
-                    self.EntryTree.focus(item_id)
-                    self.EntryTree.see(item_id)
+            return
+
+        result = self.db.search_entry(search_term)
+        print("DB Result:", result)
+
+        if not result:
+            messagebox.showinfo("Search Result", "No results found.")
+            return
+
+        entry_id = result[0]
+        for item in self.EntryTree.get_children():
+            values = self.EntryTree.item(item, "values")
+            print("Checking item: ", item, "with values ", values)
+
+            if str(values[0]) == str(entry_id):
+                self.EntryTree.selection_set(item)
+                self.EntryTree.focus(item)
+                self.EntryTree.see(item)
+                return
+
+        messagebox.showinfo("Search Result", "Found in DB but not in the view.")

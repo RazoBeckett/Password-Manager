@@ -11,7 +11,7 @@ from rapidfuzz import fuzz
 
 from db_operations import dbOperation
 from PasswordGenerator import PasswordGenerator
-
+from analytics_tab import AnalyticsTab
 
 class MainPage:
     def __init__(self, master_password):
@@ -26,8 +26,18 @@ class MainPage:
 
         self.home_tab = ttk.Frame(self.notebook)
         self.analytics_tab = ttk.Frame(self.notebook)
+        def on_tab_changed(event):
+            tab = event.widget.tab(event.widget.select(), "text")
+            if tab == "Analytics":
+                analytics_tab_instance.refresh()
+
+        self.notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
+
+        # assigned to the variable for refreshing
+        analytics_tab_instance = AnalyticsTab(self.analytics_tab, self.db)
         self.notebook.add(self.home_tab, text="Home")
         self.notebook.add(self.analytics_tab, text="Analytics")
+        # AnalyticsTab(self.analytics_tab, self.db)
 
         headTitle = tk.Label(
             self.home_tab,
@@ -63,12 +73,6 @@ class MainPage:
         ).grid(row=self.rowno, column=self.colno + 1, padx=10, pady=5)
 
         self.entrytree()
-
-        tk.Label(
-            self.analytics_tab,
-            text="Analytics Dashboard Coming Soon!",
-            font=("Arial", 18),
-        ).pack(pady=100)
 
         self.root.mainloop()
 

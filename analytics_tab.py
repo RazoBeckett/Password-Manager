@@ -41,7 +41,7 @@ class AnalyticsTab:
             text="Leaked",
             font=("Segoe UI", 28, "bold"),
             fg="#FF4C4C",
-            bg="#1E172F"
+            bg="#1E172F",
         )
         self.leak_status_label.pack()
 
@@ -50,7 +50,7 @@ class AnalyticsTab:
             text="0 Times",
             font=("Segoe UI", 14),
             fg="white",
-            bg="#1E172F"
+            bg="#1E172F",
         )
         self.leak_count_label.pack()
 
@@ -60,7 +60,9 @@ class AnalyticsTab:
 
         # ---- RIGHT AREA (Table) ----
         self.table_frame = tk.Frame(top_frame)
-        self.table_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(10, 20), pady=20)
+        self.table_frame.pack(
+            side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(10, 20), pady=20
+        )
 
         self.tree = None
         self.create_table()
@@ -108,7 +110,9 @@ class AnalyticsTab:
         tree_frame.pack(fill=tk.BOTH, expand=True)
 
         columns = ("Website", "Username", "Strength")
-        self.tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=10)
+        self.tree = ttk.Treeview(
+            tree_frame, columns=columns, show="headings", height=10
+        )
 
         for col in columns:
             self.tree.heading(col, text=col)
@@ -117,12 +121,31 @@ class AnalyticsTab:
         self.tree.pack(fill=tk.BOTH, expand=True)
         self.tree.bind("<<TreeviewSelect>>", self.check_selected_password_leak)
 
+        # ---- Password Reuse Table ----
+        self.reuse_label = tk.Label(
+            self.table_frame, text="Password Reuse Found", font=("Segoe UI", 12, "bold")
+        )
+        self.reuse_label.pack(pady=(10, 0))
+        self.reuse_label.pack_forget()  # Hide by default
+
+        self.reuse_tree = ttk.Treeview(
+            self.table_frame, columns=("Website", "Username"), show="headings", height=5
+        )
+        self.reuse_tree.heading("Website", text="Website")
+        self.reuse_tree.heading("Username", text="Username")
+        self.reuse_tree.column("Website", anchor=tk.CENTER, width=150)
+        self.reuse_tree.column("Username", anchor=tk.CENTER, width=150)
+        self.reuse_tree.pack(pady=(0, 20), fill=tk.X)
+        self.reuse_tree.pack_forget()  # Hide by default
+
     def update_table(self):
         for row in self.tree.get_children():
             self.tree.delete(row)
         self.selected_passwords.clear()
 
-        for i, (entry, strength) in enumerate(zip(self.password_data, self.strength_labels)):
+        for i, (entry, strength) in enumerate(
+            zip(self.password_data, self.strength_labels)
+        ):
             website, username, password = entry[1], entry[2], "*" * len(entry[3])
             item_id = self.tree.insert("", tk.END, values=(website, username, strength))
             self.selected_passwords[item_id] = entry[3]
@@ -174,3 +197,37 @@ class AnalyticsTab:
         else:
             self.leak_status_label.config(text="Safe", fg="#6BCB77")
             self.leak_count_label.config(text="Not Found")
+
+        # --- Password Reuse Check ---
+        reuse_records = [entry for entry in self.password_data if entry[3] == password]
+
+        # If more than one use found (i.e. reused), exclude the currently selected record
+        if len(reuse_records) > 1:
+            # Clear and repopulate reuse table
+            for row in self.reuse_tree.get_children():
+                self.reuse_tree.delete(row)
+
+            # Find the selected record
+            selected_values = self.tree.item(selected_item)["values"]
+            selected_website = selected_values[0]
+            selected_username = selected_values[1]
+
+            selected_entry = next(
+                (entry for entry in reuse_records if entry[1] == selected_website and entry[2] == selected_username),
+                None
+            )
+
+
+            filtered_records = [entry for entry in reuse_records if entry != selected_entry]
+
+            if filtered_records:
+                self.reuse_label.pack()
+                self.reuse_tree.pack()
+                for entry in filtered_records:
+                    self.reuse_tree.insert("", tk.END, values=(entry[1], entry[2]))
+            else:
+                self.reuse_tree.pack_forget()
+                self.reuse_label.pack_forget()
+        else:
+            self.reuse_tree.pack_forget()
+            self.reuse_label.pack_forget()

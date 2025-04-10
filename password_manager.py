@@ -9,13 +9,17 @@ from tkinter import END, messagebox, ttk
 
 from rapidfuzz import fuzz
 
+from analytics_tab import AnalyticsTab
 from db_operations import dbOperation
 from PasswordGenerator import PasswordGenerator
-from analytics_tab import AnalyticsTab
+
 
 class MainPage:
     def __init__(self, master_password):
         self.db = dbOperation(master_password)
+        self.passwords_visible = True
+        self.plain_pass = []
+
         self.root = tk.Tk()
         self.root.title("Python Password Manager")
         self.root.geometry("1000x600+40+40")
@@ -26,6 +30,7 @@ class MainPage:
 
         self.home_tab = ttk.Frame(self.notebook)
         self.analytics_tab = ttk.Frame(self.notebook)
+
         def on_tab_changed(event):
             tab = event.widget.tab(event.widget.select(), "text")
             if tab == "Analytics":
@@ -74,6 +79,7 @@ class MainPage:
 
         self.entrytree()
 
+        self.toggle_password_visibility()
         self.root.mainloop()
 
     def EntryLabels(self):
@@ -89,11 +95,11 @@ class MainPage:
         self.rowno += 1
         self.colno = 0
         Buttonss = (
-            ("Save", "green", self.saveEntry),
-            ("Update", "blue", self.updateEntry),
+            ("Save", "green", self.save_or_update_entry),
             ("Delete", "red", self.delEntry),
+            ("Clear", "gray", self.clearFields),
             ("Copy Password", "violet", self.copy2clip),
-            ("Show All", "black", self.showAllEntry),
+            ("Show/Hide", "black", self.toggle_password_visibility),
             (
                 "Generate Pass",
                 "orange",
@@ -101,7 +107,7 @@ class MainPage:
             ),
         )
         for bInfo in Buttonss:
-            if bInfo[0] == "Show All":
+            if bInfo[0] == "Show/Hide":
                 self.rowno += 1
                 self.colno = 0
             tk.Button(
@@ -116,6 +122,16 @@ class MainPage:
                 command=bInfo[2],
             ).grid(row=self.rowno, column=self.colno, padx=2, pady=10)
             self.colno += 1
+
+    def toggle_password_visibility(self):
+        self.passwords_visible = not self.passwords_visible
+        self.EntryTree.delete(*self.EntryTree.get_children())
+
+        for idx, entry in enumerate(self.db.dbGetAllEntry()):
+            self.plain_pass.append(entry[3])
+            password = entry[3] if self.passwords_visible else "*" * len(entry[3])
+            entry_with_asterisk = entry[:3] + (password,)
+            self.EntryTree.insert("", END, values=entry_with_asterisk)
 
     def EntryFields(self):
         self.rowno, self.colno = 1, 0
@@ -136,37 +152,40 @@ class MainPage:
             self.colno += 1
             self.entrybox.append(entrybox)
 
-    def saveEntry(self):
-        website = self.entrybox[1].get()
-        username = self.entrybox[2].get()
-        password = self.entrybox[3].get()
-        if not website or not username or not password:
-            messagebox.showerror("Error", "Please fill all the fields.")
-        else:
-            data = {"website": website, "username": username, "password": password}
-            if self.db.entryExists(website, username):
-                messagebox.showerror("Error", "Entry already exists.")
-                return
-            else:
-                self.db.dbSaveEntry(data)
-                self.showAllEntry()
-
-    def updateEntry(self):
+    def save_or_update_entry(self):
         id = self.entrybox[0].get()
         website = self.entrybox[1].get()
         username = self.entrybox[2].get()
         password = self.entrybox[3].get()
+
         if not website or not username or not password:
             messagebox.showerror("Error", "Please fill all the fields.")
-        else:
-            data = {
-                "ID": id,
-                "website": website,
-                "username": username,
-                "password": password,
-            }
+            return
+
+        data = {
+            "website": website,
+            "username": username,
+            "password": password,
+        }
+
+        if id:  # Update
+            data["ID"] = id
             self.db.dbUpdateEntry(data)
-            self.showAllEntry()
+            # messagebox.showinfo("Updated", "Entry updated successfully.")
+        else:  # Save
+            if self.db.entryExists(website, username):
+                messagebox.showerror("Error", "Entry already exists.")
+                return
+            self.db.dbSaveEntry(data)
+            # messagebox.showinfo("Saved", "Entry saved successfully.")
+
+        self.showAllEntry()
+        self.clearFields()
+
+    def clearFields(self):
+        for entry_box in self.entrybox:
+            entry_box.delete(0, END)
+        self.EntryTree.selection_remove(self.EntryTree.selection())
 
     def delEntry(self):
         id = self.entrybox[0].get()

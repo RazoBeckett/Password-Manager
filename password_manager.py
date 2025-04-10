@@ -7,38 +7,59 @@
 import tkinter as tk
 from tkinter import END, messagebox, ttk
 
+from rapidfuzz import fuzz
+
 from db_operations import dbOperation
 from PasswordGenerator import PasswordGenerator
-
+from analytics_tab import AnalyticsTab
 
 class MainPage:
     def __init__(self, master_password):
         self.db = dbOperation(master_password)
         self.root = tk.Tk()
-        headTitle = tk.Label(
-            self.root,
-            text="Python Password Manager",
-            font=("Arial", 24),
-            justify="center",
-        )
-        headTitle.grid(
-            columnspan=4, padx=140, pady=10
-        )  # Use grid() instead of pack() for better control
         self.root.title("Python Password Manager")
         self.root.geometry("1000x600+40+40")
         self.root.resizable(False, False)
 
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.pack(fill="both", expand=True)
+
+        self.home_tab = ttk.Frame(self.notebook)
+        self.analytics_tab = ttk.Frame(self.notebook)
+        def on_tab_changed(event):
+            tab = event.widget.tab(event.widget.select(), "text")
+            if tab == "Analytics":
+                analytics_tab_instance.refresh()
+
+        self.notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
+
+        # assigned to the variable for refreshing
+        analytics_tab_instance = AnalyticsTab(self.analytics_tab, self.db)
+        self.notebook.add(self.home_tab, text="Home")
+        self.notebook.add(self.analytics_tab, text="Analytics")
+        # AnalyticsTab(self.analytics_tab, self.db)
+
+        headTitle = tk.Label(
+            self.home_tab,
+            text="Python Password Manager",
+            font=("Arial", 24),
+            justify="center",
+        )
+        headTitle.grid(columnspan=4, padx=140, pady=10)
+
         self.curd_frame = tk.Frame(
-            self.root,
+            self.home_tab,
             highlightbackground="black",
             highlightthickness=1,
             padx=10,
             pady=10,
         )
         self.curd_frame.grid()
+
         self.EntryLabels()
         self.EntryFields()
         self.Buttons()
+
         self.search_Entry = tk.Entry(self.curd_frame, width=30, font=("Arial", 12))
         self.search_Entry.grid(row=self.rowno, column=self.colno)
         tk.Button(
@@ -50,7 +71,9 @@ class MainPage:
             width=20,
             command=self.search_entry,
         ).grid(row=self.rowno, column=self.colno + 1, padx=10, pady=5)
+
         self.entrytree()
+
         self.root.mainloop()
 
     def EntryLabels(self):
@@ -163,7 +186,7 @@ class MainPage:
 
     def entrytree(self):
         col = ("ID", "Website", "Username", "Password")
-        self.EntryTree = ttk.Treeview(self.root, columns=col, show="headings")
+        self.EntryTree = ttk.Treeview(self.home_tab, columns=col, show="headings")
         self.EntryTree.heading("ID", text="ID")
         self.EntryTree.heading("Website", text="Website Name")
         self.EntryTree.heading("Username", text="Username")
@@ -203,15 +226,22 @@ class MainPage:
         search_term = self.search_Entry.get()
         if not search_term:
             messagebox.showwarning("Search Error", "Please enter a search term.")
+            return
+
+        best_match = None
+        highest_score = 0
+
+        for item in self.EntryTree.get_children():
+            values = self.EntryTree.item(item, "values")
+            for val in values:
+                score = fuzz.partial_ratio(search_term.lower(), str(val).lower())
+                if score > highest_score:
+                    highest_score = score
+                    best_match = item
+
+        if best_match and highest_score >= 70:
+            self.EntryTree.selection_set(best_match)
+            self.EntryTree.focus(best_match)
+            self.EntryTree.see(best_match)
         else:
-            entry_id = self.db.search_entry(search_term)
-            print(entry_id)
-            if not entry_id:
-                messagebox.showinfo("Search Result", "No results found.")
-            else:
-                item_id = self.EntryTree.identify_column(entry_id[0])
-                print(item_id)
-                if item_id:
-                    self.EntryTree.selection_set(item_id)
-                    self.EntryTree.focus(item_id)
-                    self.EntryTree.see(item_id)
+            messagebox.showinfo("Search Result", "Found in DB but not in the view.")

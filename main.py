@@ -8,7 +8,9 @@ import os
 import re
 import sqlite3
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
+import traceback
 
 import bcrypt
 
@@ -96,12 +98,11 @@ def check_password(master_password):
 
         if bcrypt.checkpw(master_password.encode(), stored_hashed_password):
             try:
+                root.destroy()
                 MainPage(master_password)
-            except Exception:
-                messagebox.showerror(
-                    "Error",
-                    "Failed to open password manager, please check if password_manager.py is in the same directory.",
-                )
+            except Exception as e:
+                error_details = traceback.format_exc()
+                messagebox.showerror("Error", f"Failed to open password manager:\n{e}\n\n{error_details}")
         else:
             messagebox.showerror("Error", "Incorrect password. Access denied.")
     except:
@@ -112,6 +113,8 @@ def check_password(master_password):
 
 # Create the main Tkinter window
 root = tk.Tk()
+style = ttk.Style(root)
+style.theme_use("classic")
 root.title("Password Manager")
 root.geometry("400x200")
 root.resizable(False, False)

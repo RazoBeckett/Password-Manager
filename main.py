@@ -8,9 +8,8 @@ import os
 import re
 import sqlite3
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
 import traceback
+from tkinter import messagebox, ttk
 
 import bcrypt
 
@@ -90,25 +89,23 @@ def set_master_password():
 
 # Function to check if the entered password is correct
 def check_password(master_password):
-    conn = sqlite3.connect("passwords.db")
-    c = conn.cursor()
     try:
-        c.execute("SELECT hashed_password FROM master_password")
-        stored_hashed_password = c.fetchone()[0]
+        with sqlite3.connect("passwords.db") as conn:
+            c = conn.cursor()
+            c.execute("SELECT hashed_password FROM master_password")
+            stored_hashed_password = c.fetchone()[0]
 
-        if bcrypt.checkpw(master_password.encode(), stored_hashed_password):
-            try:
-                root.destroy()
-                MainPage(master_password)
-            except Exception as e:
-                error_details = traceback.format_exc()
-                messagebox.showerror("Error", f"Failed to open password manager:\n{e}\n\n{error_details}")
-        else:
-            messagebox.showerror("Error", "Incorrect password. Access denied.")
-    except:
+            if bcrypt.checkpw(master_password.encode(), stored_hashed_password):
+                try:
+                    root.destroy()
+                    MainPage(master_password)
+                except Exception as e:
+                    error_details = traceback.format_exc()
+                    messagebox.showerror("Error", f"Failed to open password manager:\n{e}\n\n{error_details}")
+            else:
+                messagebox.showerror("Error", "Incorrect password. Access denied.")
+    except Exception:
         messagebox.showerror("Error", "Master password is not set.")
-    finally:
-        conn.close()
 
 
 # Create the main Tkinter window

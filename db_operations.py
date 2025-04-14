@@ -6,8 +6,10 @@
 
 import os
 import sqlite3
+from tkinter import messagebox
 
 import bcrypt
+import pwnedpasswords
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -80,9 +82,18 @@ class dbOperation:
         max_id_result = self.conn.execute(max_id_query).fetchone()
         max_id = max_id_result[0] if max_id_result[0] is not None else 0
 
+        count = pwnedpasswords.check(data["password"])
+        if count:
+            proceed = messagebox.askyesno(
+                "Leaked Password Detected",
+                f"The password has been leaked {count:,} times. Do you want to proceed?",
+            )
+            if not proceed:
+                return
+
+        encryptedpass = encrypt_password(data["password"], self.key)
         # Insert the new entry with an ID one greater than the maximum ID
         query = """INSERT INTO user_accounts (id, website, username, password) VALUES (?, ?, ?, ?)"""
-        encryptedpass = encrypt_password(data["password"], self.key)
         self.conn.execute(
             query, (max_id + 1, data["website"], data["username"], encryptedpass)
         )
